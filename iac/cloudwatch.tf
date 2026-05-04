@@ -1,15 +1,28 @@
-resource "aws_cloudwatch_metric_alarm" "cloudwatch_dlq" {
-  alarm_name                = "dlq-messages-alarm"
+resource "aws_cloudwatch_log_group" "upload_lambda_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.upload.function_name}"
+  retention_in_days = 14
+}
 
-  comparison_operator       = "GreaterThanThreshold"
-  evaluation_periods        = 1 #En el diagrama no dice cuantos, consideré 1 porque es el mínimo válido
-  metric_name               = "ApproximateNumberOfMessagesVisible"
-  namespace                 = "AWS/SQS"
-  period                    = 60
-  statistic                 = "Average"
-  threshold                 = 0
-  #alarm_description         = ""
-  insufficient_data_actions = []
-  alarm_actions = 
-  dimensions = {QueueName = aws_sqs_queue.image_processor_env_image_dlq.name}
+resource "aws_cloudwatch_log_group" "crop_lambda_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.crop.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_sns_topic" "dlq_alarm_topic" {
+  name = "dlq-alarm-${terraform.workspace}"
+}
+
+resource "aws_cloudwatch_metric_alarm" "dlq_messages" {
+  alarm_name          = "dlq-messages-alarm-${terraform.workspace}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "ApproximateNumberOfMessagesVisible"
+  namespace           = "AWS/SQS"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 0
+  dimensions = {
+    QueueName = aws_sqs_queue.dlq.name
+  }
+  alarm_actions = [aws_sns_topic.dlq_alarm_topic.arn]
 }
