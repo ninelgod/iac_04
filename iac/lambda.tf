@@ -1,13 +1,13 @@
 data "archive_file" "upload_zip" {
   type        = "zip"
-  source_file = "../src/upload-lambda/index.js"
-  output_path = "../bin/upload-function.zip"
+  source_dir  = "../src/upload-lambda"
+  output_path = "../bin/lambda/upload-function.zip"
 }
 
 data "archive_file" "crop_zip" {
   type        = "zip"
-  source_file = "../src/crop-lambda/index.js"
-  output_path = "../bin/crop-function.zip"
+  source_dir  = "../src/crop-lambda"
+  output_path = "../bin/lambda/crop-function.zip"
 }
 
 resource "aws_lambda_function" "upload" {
@@ -55,8 +55,8 @@ resource "aws_lambda_function" "crop" {
 }
 
 resource "aws_lambda_event_source_mapping" "crop_sqs" {
-  event_source_arn            = aws_sqs_queue.main.arn
-  function_name               = aws_lambda_function.crop.arn
-  batch_size                  = 5
-  function_response_types     = ["ReportBatchItemFailures"]
+  event_source_arn        = aws_sqs_queue.main.arn
+  function_name           = aws_lambda_function.crop.arn
+  batch_size              = 5
+  function_response_types = ["ReportBatchItemFailures"]
 }

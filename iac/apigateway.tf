@@ -51,7 +51,8 @@ resource "aws_apigatewayv2_stage" "default" {
     })
   }
 
-  default_route_settings {
-    throttling_rate_limit = lookup(var.environment, terraform.workspace, 10000)
+    default_route_settings {
+    throttling_rate_limit  = 10000
+    throttling_burst_limit = 10000
   }
 }
